@@ -54,7 +54,19 @@ export function rootPath() {
   return '/';
 }
 
-export function catchAllPath(params = {}) {
+export function tokenPagePath(params = {}) {
+  const token = joinRouteParam(params.token);
+  return token ? `/${token}` : '/';
+}
+
+export function apiPath(params = {}) {
   const rest = joinRouteParam(params.default);
-  return rest ? `/${rest}` : '/';
+  return rest ? `/api/${rest}` : '/api';
+}
+
+export function tokenApiPath(params = {}) {
+  const token = joinRouteParam(params.token);
+  const rest = joinRouteParam(params.default);
+  if (!token) return apiPath(params);
+  return rest ? `/${token}/api/${rest}` : `/${token}/api`;
 }
