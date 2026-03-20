@@ -17,15 +17,24 @@ function joinRouteParam(value) {
   return String(value || '').replace(/^\/+|\/+$/g, '');
 }
 
-function rebuildRequest(request, pathname) {
+async function rebuildRequest(request, pathname) {
   const method = (request?.method || 'GET').toUpperCase();
   const url = new URL(request.url);
+  const headers = new Headers(request.headers);
   url.pathname = pathname;
-  const body = (method === 'GET' || method === 'HEAD') ? undefined : request.body;
+
+  let body;
+  if (method !== 'GET' && method !== 'HEAD') {
+    const rawBody = await request.arrayBuffer();
+    body = rawBody.byteLength > 0 ? rawBody : undefined;
+    if (!body) {
+      headers.delete('content-length');
+    }
+  }
 
   return new Request(url.toString(), {
     method,
-    headers: request.headers,
+    headers,
     body,
     duplex: body ? 'half' : undefined,
     redirect: request.redirect,
@@ -37,7 +46,7 @@ function rebuildRequest(request, pathname) {
 
 export async function onApiRequest(context, pathname = null) {
   const { request, env } = context;
-  const targetRequest = pathname ? rebuildRequest(request, pathname) : request;
+  const targetRequest = pathname ? await rebuildRequest(request, pathname) : request;
   return handleRequest(targetRequest, env, 'edgeone', getClientIp(request));
 }
 
