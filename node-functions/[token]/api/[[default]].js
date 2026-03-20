@@ -1,3 +1,3 @@
-import { onApiRequest } from '../../api-handler.js';
+import { onApiRequest, tokenApiPath } from '../../api-handler.js';
 
-export const onRequest = onApiRequest;
+export const onRequest = (context) => onApiRequest(context, tokenApiPath(context.params));
